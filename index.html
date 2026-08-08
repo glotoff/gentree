@@ -244,12 +244,18 @@
         const margin = {top: 50, right: 60, bottom: 80, left: 60};
 
         d3.json("gentree-gridnev.json").then(function(treeData) {
-            root = d3.hierarchy(treeData);
+            // Support both a single-root object and a multi-root array.
+            // Wrap arrays in a hidden synthetic root so D3 sees one tree.
+            const hierarchyInput = Array.isArray(treeData)
+                ? { name: "__root__", children: treeData }
+                : treeData;
+
+            root = d3.hierarchy(hierarchyInput);
             
-            // Calculate stats
-            const descendants = root.descendants();
+            // Calculate stats — exclude the synthetic root itself from counts
+            const descendants = root.descendants().filter(d => d.data.name !== "__root__");
             document.getElementById("stat-members").textContent = `${descendants.length} Members`;
-            document.getElementById("stat-generations").textContent = `${root.height + 1} Generations`;
+            document.getElementById("stat-generations").textContent = `${root.height} Generations`;
 
             // Measure leaf count for dynamic width
             const leafCount = root.leaves().length;
@@ -296,8 +302,10 @@
         function update(source) {
             treeLayout(root);
 
-            const nodes = root.descendants();
-            const links = root.links();
+            // Filter out the invisible synthetic root and its outgoing links
+            const isRoot = d => d.data.name === "__root__";
+            const nodes = root.descendants().filter(d => !isRoot(d));
+            const links = root.links().filter(l => !isRoot(l.source));
 
             // Links
             const link = g.selectAll(".link")
@@ -317,7 +325,7 @@
 
             link.exit().remove();
 
-            // Nodes
+            // Nodes (also filtered — no circle/label for synthetic root)
             const node = g.selectAll(".node")
                 .data(nodes, d => d.data.name + (d.data.attributes?.Location || ""));
 
@@ -356,6 +364,7 @@
                         .text(part);
                 });
 
+                let extraLines = 0;
                 if (d.data.attributes && d.data.attributes.Location) {
                     const locY = 18 + (parts.length * 13);
                     el.append("text")
@@ -363,6 +372,16 @@
                         .attr("x", 0)
                         .attr("y", locY)
                         .text(`📍 ${d.data.attributes.Location}`);
+                    extraLines++;
+                }
+                if (d.data.attributes && d.data.attributes.Dates) {
+                    const datesY = 18 + (parts.length * 13) + (extraLines * 13);
+                    el.append("text")
+                        .attr("class", "location-text")
+                        .attr("x", 0)
+                        .attr("y", datesY)
+                        .style("fill", "#94a3b8")
+                        .text(`🗓 ${d.data.attributes.Dates}`);
                 }
             });
 
