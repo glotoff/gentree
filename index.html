@@ -9,13 +9,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-        }
-        body { 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            margin: 0; 
-            padding: 16px; 
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 16px;
             background: #0f172a;
             color: #f8fafc;
             height: 100vh;
@@ -23,7 +22,7 @@
             flex-direction: column;
             overflow: hidden;
         }
-        
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -31,6 +30,7 @@
             margin-bottom: 12px;
             flex-wrap: wrap;
             gap: 12px;
+            flex-shrink: 0;
         }
         .header-title h1 {
             margin: 0;
@@ -45,33 +45,23 @@
             color: #94a3b8;
             font-size: 0.8rem;
         }
-
         .header-right {
             display: flex;
             align-items: center;
             gap: 12px;
             flex-wrap: wrap;
         }
-
-        .stats-bar {
-            display: flex;
-            gap: 8px;
-        }
+        .stats-bar { display: flex; gap: 8px; }
         .stat-badge {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(30,41,59,0.8);
+            border: 1px solid rgba(255,255,255,0.1);
             padding: 4px 12px;
             border-radius: 9999px;
             font-size: 0.78rem;
             color: #cbd5e1;
             font-weight: 500;
         }
-
-        .controls-bar {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
+        .controls-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
         .btn {
             background: #1e293b;
             border: 1px solid #334155;
@@ -87,20 +77,42 @@
             transition: all 0.2s ease;
             user-select: none;
         }
-        .btn:hover {
-            background: #334155;
-            border-color: #475569;
-            color: #38bdf8;
+        .btn:hover { background: #334155; border-color: #475569; color: #38bdf8; }
+        .btn-primary { background: #2563eb; border-color: #3b82f6; color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; border-color: #60a5fa; color: #fff; }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 14px;
+            align-items: center;
         }
-        .btn-primary {
-            background: #2563eb;
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2.5px solid;
+            flex-shrink: 0;
+        }
+        .legend-dot.couple {
+            background: #1e3a5f;
             border-color: #3b82f6;
-            color: #ffffff;
+            box-shadow: 0 0 0 3px #0f172a, 0 0 0 5px #3b82f6;
         }
-        .btn-primary:hover {
-            background: #1d4ed8;
-            border-color: #60a5fa;
-            color: #ffffff;
+        .legend-dot.single {
+            background: #0e4429;
+            border-color: #22c55e;
+        }
+        .legend-dot.collapsed {
+            background: #78350f;
+            border-color: #f59e0b;
         }
 
         .tree-viewport {
@@ -109,85 +121,94 @@
             background: #1e293b;
             border: 1px solid #334155;
             border-radius: 12px;
-            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+            box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.2);
             position: relative;
             overflow: hidden;
             cursor: grab;
         }
-        .tree-viewport:active {
-            cursor: grabbing;
+        .tree-viewport:active { cursor: grabbing; }
+
+        #tree-container { width: 100%; height: 100%; display: block; }
+
+        /* === Node card background === */
+        .node-card {
+            fill: rgba(15, 23, 42, 0.82);
+            stroke: none;
+            rx: 6px;
+            ry: 6px;
+        }
+        .node-card.couple-card {
+            fill: rgba(30, 58, 95, 0.82);
         }
 
-        #tree-container {
-            width: 100%;
-            height: 100%;
-            display: block;
+        /* === Couple node: double-ring indicator === */
+        .node-icon-outer {
+            fill: none;
+            stroke-width: 2px;
+            stroke: #3b82f6;
         }
-
-        /* Node Styling */
-        .node {
-            cursor: pointer;
-        }
-        .node circle { 
-            fill: #3b82f6; 
-            stroke: #60a5fa; 
-            stroke-width: 2.5px; 
-            transition: all 0.2s ease;
-        }
-        .node.has-children circle {
-            fill: #2563eb;
+        .node-icon-inner {
+            fill: #3b82f6;
             stroke: #93c5fd;
+            stroke-width: 1.5px;
         }
-        .node.collapsed circle {
+
+        /* Single person node */
+        .node-icon-single {
+            fill: #22c55e;
+            stroke: #4ade80;
+            stroke-width: 2px;
+        }
+
+        /* Collapsed indicator */
+        .node.collapsed .node-icon-outer,
+        .node.collapsed .node-icon-inner,
+        .node.collapsed .node-icon-single {
             fill: #f59e0b;
             stroke: #fde047;
-            r: 8px;
-        }
-        .node:hover circle {
-            fill: #a855f7;
-            stroke: #c084fc;
-            r: 9.5px;
-            filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.7));
         }
 
-        .node text.name-text { 
+        /* Hover pulse on node group */
+        .node { cursor: pointer; }
+        .node:hover .node-icon-outer { stroke: #c084fc; filter: drop-shadow(0 0 6px rgba(168,85,247,0.8)); }
+        .node:hover .node-icon-inner { fill: #a855f7; stroke: #c084fc; }
+        .node:hover .node-icon-single { fill: #a855f7; stroke: #c084fc; }
+
+        .node text.name-text {
             font-family: 'Inter', sans-serif;
-            font-size: 11px; 
+            font-size: 11px;
             font-weight: 500;
             fill: #f1f5f9;
             text-anchor: middle;
             pointer-events: none;
         }
+        .node text.name-text.couple-name { fill: #93c5fd; }
 
-        .node text.location-text { 
+        .node text.meta-text {
             font-family: 'Inter', sans-serif;
-            font-size: 9.5px; 
+            font-size: 9.5px;
             font-weight: 400;
-            fill: #38bdf8;
             text-anchor: middle;
             pointer-events: none;
         }
 
-        /* Link Line Styling */
-        .link { 
-            fill: none; 
-            stroke: #475569; 
-            stroke-width: 2px; 
+        /* Links */
+        .link {
+            fill: none;
+            stroke: #334155;
+            stroke-width: 1.5px;
             stroke-linecap: round;
-            transition: stroke 0.25s ease, stroke-width 0.25s ease;
+            transition: stroke 0.2s ease, stroke-width 0.2s ease;
         }
-        .link.highlighted {
-            stroke: #a855f7;
-            stroke-width: 3px;
-        }
+        .link.highlighted { stroke: #a855f7; stroke-width: 2.5px; }
 
         .hint-toast {
             position: absolute;
             bottom: 12px;
             right: 12px;
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(15,23,42,0.85);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.1);
             padding: 6px 12px;
             border-radius: 8px;
             font-size: 0.75rem;
@@ -204,6 +225,18 @@
         </div>
 
         <div class="header-right">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-dot couple"></div> Couple
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot single"></div> Individual
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot collapsed"></div> Collapsed
+                </div>
+            </div>
+
             <div class="stats-bar">
                 <span class="stat-badge" id="stat-members">Loading...</span>
                 <span class="stat-badge" id="stat-generations">Loading...</span>
@@ -214,236 +247,287 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
                     Fit Screen
                 </button>
-                <button class="btn" onclick="zoomIn()" title="Zoom In">
+                <button class="btn" onclick="zoomIn()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
                     Zoom +
                 </button>
-                <button class="btn" onclick="zoomOut()" title="Zoom Out">
+                <button class="btn" onclick="zoomOut()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
                     Zoom -
                 </button>
-                <button class="btn" onclick="expandAll()" title="Expand All Branches">
-                    Expand All
-                </button>
-                <button class="btn" onclick="collapseAll()" title="Collapse Branches">
-                    Collapse
-                </button>
+                <button class="btn" onclick="expandAll()">Expand All</button>
+                <button class="btn" onclick="collapseAll()">Collapse</button>
             </div>
         </div>
     </div>
-    
+
     <div class="tree-viewport">
         <svg id="tree-container"></svg>
-        <div class="hint-toast">💡 Drag to Pan | Scroll wheel to Zoom | Click nodes to Expand/Collapse</div>
+        <div class="hint-toast">💡 Drag to Pan · Scroll to Zoom · Click node to Expand/Collapse</div>
     </div>
 
     <script>
-        let svg, g, zoom, root, treeLayout;
-        let width = 3200;
-        let height = 1200;
-        const margin = {top: 50, right: 60, bottom: 80, left: 60};
+        // ─── Layout constants ──────────────────────────────────────────────────────
+        // NODE_W / NODE_H: reserved "slot" per node for separation.
+        // The actual card is smaller; this gives breathing room between siblings.
+        const NODE_W = 200;   // horizontal slot width per leaf — controls horizontal spread
+        const GEN_H  = 220;   // vertical distance between generation rows
 
-        d3.json("gentree-gridnev.json").then(function(treeData) {
-            // Support both a single-root object and a multi-root array.
-            // Wrap arrays in a hidden synthetic root so D3 sees one tree.
+        const CARD_W = 180;   // visible card width
+        const CARD_PAD_Y = 8; // vertical padding inside card
+
+        const LINE_H = 13;    // px per text line inside the card
+        const ICON_R = 7;     // radius of the inner circle icon
+
+        const margin = { top: 60, right: 60, bottom: 80, left: 60 };
+
+        let svg, g, zoom, root, treeLayout;
+
+        // ─── Helper: is this node a couple? ───────────────────────────────────────
+        function isCouple(d) {
+            return (d.data.name || "").includes("&");
+        }
+
+        // ─── Helper: estimate total text lines for a node ─────────────────────────
+        function nodeLines(d) {
+            const name = d.data.name || "";
+            const nameParts = name.includes("&")
+                ? name.split("&").map((p, i) => (i === 1 ? "& " + p.trim() : p.trim()))
+                : [name];
+            let lines = nameParts.length;
+            if (d.data.attributes?.Location) lines++;
+            if (d.data.attributes?.Dates)    lines++;
+            if (d.data.attributes?.Note)     lines++;
+            return lines;
+        }
+
+        // ─── Helper: card height for a node ───────────────────────────────────────
+        function cardHeight(d) {
+            return CARD_PAD_Y * 2 + nodeLines(d) * LINE_H + ICON_R * 2 + 6;
+        }
+
+        // ─── Load data ─────────────────────────────────────────────────────────────
+        d3.json("gentree-gridnev.json").then(function (treeData) {
             const hierarchyInput = Array.isArray(treeData)
                 ? { name: "__root__", children: treeData }
                 : treeData;
 
             root = d3.hierarchy(hierarchyInput);
-            
-            // Calculate stats — exclude the synthetic root itself from counts
-            const descendants = root.descendants().filter(d => d.data.name !== "__root__");
-            document.getElementById("stat-members").textContent = `${descendants.length} Members`;
+
+            const realDescendants = root.descendants().filter(d => d.data.name !== "__root__");
+            document.getElementById("stat-members").textContent     = `${realDescendants.length} Members`;
             document.getElementById("stat-generations").textContent = `${root.height} Generations`;
 
-            // Measure leaf count for dynamic width
+            // Compute canvas dimensions.
+            // Width: narrow — just wide enough for the viewport, let vertical scroll do the work.
+            // Height: deep — one generation row = GEN_H px.
             const leafCount = root.leaves().length;
-            width = Math.max(2600, leafCount * 115);
-            height = Math.max(1000, (root.height + 1) * 200);
+            const canvasW   = Math.max(leafCount * NODE_W, 1200);
+            const canvasH   = Math.max((root.height + 1) * GEN_H + margin.top + margin.bottom, 800);
 
             svg = d3.select("#tree-container");
             svg.selectAll("*").remove();
 
-            // Background rect for pan/zoom gestures across whole canvas
-            svg.append("rect")
-                .attr("width", "100%")
-                .attr("height", "100%")
-                .attr("fill", "transparent");
+            // Transparent background rect to capture drag events everywhere
+            svg.append("rect").attr("width", "100%").attr("height", "100%").attr("fill", "transparent");
 
             g = svg.append("g").attr("class", "tree-group");
 
-            // D3 Zoom
             zoom = d3.zoom()
-                .scaleExtent([0.05, 4])
-                .on("zoom", (event) => {
-                    g.attr("transform", event.transform);
-                });
+                .scaleExtent([0.04, 4])
+                .on("zoom", event => g.attr("transform", event.transform));
 
             svg.call(zoom).on("dblclick.zoom", null);
 
             treeLayout = d3.tree()
-                .size([width - margin.left - margin.right, height - margin.top - margin.bottom])
-                .separation((a, b) => (a.parent === b.parent ? 1 : 1.25));
+                .size([canvasW - margin.left - margin.right, canvasH - margin.top - margin.bottom])
+                .separation((a, b) => {
+                    // Give more horizontal separation for couples (wider names)
+                    const aW = isCouple(a) ? 1.4 : 1;
+                    const bW = isCouple(b) ? 1.4 : 1;
+                    return (a.parent === b.parent ? 1 : 1.3) * Math.max(aW, bW);
+                });
 
-            // Initial render
             update(root);
-
-            // Auto-fit to screen after initial render
             setTimeout(fitToScreen, 150);
-
-            // Handle window resize
             window.addEventListener("resize", fitToScreen);
 
-        }).catch(function(error) {
-            console.error("Error loading JSON:", error);
-        });
+        }).catch(err => console.error("Error loading JSON:", err));
 
+        // ─── Render / Update ───────────────────────────────────────────────────────
         function update(source) {
             treeLayout(root);
 
-            // Filter out the invisible synthetic root and its outgoing links
-            const isRoot = d => d.data.name === "__root__";
-            const nodes = root.descendants().filter(d => !isRoot(d));
-            const links = root.links().filter(l => !isRoot(l.source));
+            const isSyntheticRoot = d => d.data.name === "__root__";
+            const nodes = root.descendants().filter(d => !isSyntheticRoot(d));
+            const links = root.links().filter(l => !isSyntheticRoot(l.source));
 
-            // Links
-            const link = g.selectAll(".link")
+            // ── Links ──────────────────────────────────────────────────────────────
+            const linkSel = g.selectAll(".link")
                 .data(links, d => d.target.data.name + (d.target.data.attributes?.Location || ""));
 
-            const linkEnter = link.enter().append("path")
+            linkSel.enter().append("path")
                 .attr("class", "link")
                 .attr("d", d3.linkVertical()
                     .x(d => d.x + margin.left)
-                    .y(d => d.y + margin.top));
-
-            link.merge(linkEnter)
-                .transition().duration(400)
+                    .y(d => d.y + margin.top))
+                .merge(linkSel)
+                .transition().duration(350)
                 .attr("d", d3.linkVertical()
                     .x(d => d.x + margin.left)
                     .y(d => d.y + margin.top));
 
-            link.exit().remove();
+            linkSel.exit().remove();
 
-            // Nodes (also filtered — no circle/label for synthetic root)
-            const node = g.selectAll(".node")
+            // ── Nodes ──────────────────────────────────────────────────────────────
+            const nodeSel = g.selectAll(".node")
                 .data(nodes, d => d.data.name + (d.data.attributes?.Location || ""));
 
-            const nodeEnter = node.enter().append("g")
-                .attr("class", d => `node ${d.children || d._children ? 'has-children' : ''} ${d._children ? 'collapsed' : ''}`)
+            const nodeEnter = nodeSel.enter().append("g")
+                .attr("class", d => {
+                    const base = "node";
+                    const hasKids = d.children || d._children;
+                    const collapsed = !!d._children;
+                    return [base, hasKids ? "has-children" : "", collapsed ? "collapsed" : ""].join(" ").trim();
+                })
                 .attr("transform", d => `translate(${d.x + margin.left},${d.y + margin.top})`)
                 .on("click", (event, d) => {
-                    if (d.children) {
-                        d._children = d.children;
-                        d.children = null;
-                    } else if (d._children) {
-                        d.children = d._children;
-                        d._children = null;
-                    }
+                    if (d.children)  { d._children = d.children; d.children = null; }
+                    else if (d._children) { d.children = d._children; d._children = null; }
                     update(d);
                 });
 
-            nodeEnter.append("circle").attr("r", 6.5);
-
-            // Render name text with line wrapping for '&'
-            nodeEnter.each(function(d) {
+            // Build card content for each new node
+            nodeEnter.each(function (d) {
                 const el = d3.select(this);
-                const name = d.data.name || "";
-                const parts = name.includes("&") 
+                const couple = isCouple(d);
+                const name   = d.data.name || "";
+                const nameParts = couple
                     ? name.split("&").map((p, i) => i === 1 ? "& " + p.trim() : p.trim())
                     : [name];
 
-                const textEl = el.append("text")
-                    .attr("class", "name-text")
-                    .attr("y", 18);
+                const ch = cardHeight(d);
+                const iconTop = -ch / 2;  // top of the card relative to the node anchor
 
-                parts.forEach((part, index) => {
+                // ── Background card ────────────────────────────────────────────────
+                el.append("rect")
+                    .attr("class", `node-card ${couple ? "couple-card" : ""}`)
+                    .attr("x", -CARD_W / 2)
+                    .attr("y", iconTop)
+                    .attr("width", CARD_W)
+                    .attr("height", ch)
+                    .attr("rx", 7)
+                    .attr("ry", 7)
+                    .attr("stroke", couple ? "#3b82f6" : "#22c55e")
+                    .attr("stroke-width", 1);
+
+                // ── Node icon (couple = double-ring; single = filled circle) ───────
+                const iconCY = iconTop + ICON_R + 5;
+
+                if (couple) {
+                    // Outer ring
+                    el.append("circle")
+                        .attr("class", "node-icon-outer")
+                        .attr("cx", 0).attr("cy", iconCY)
+                        .attr("r", ICON_R + 3);
+                    // Inner filled circle
+                    el.append("circle")
+                        .attr("class", "node-icon-inner")
+                        .attr("cx", 0).attr("cy", iconCY)
+                        .attr("r", ICON_R);
+                } else {
+                    el.append("circle")
+                        .attr("class", "node-icon-single")
+                        .attr("cx", 0).attr("cy", iconCY)
+                        .attr("r", ICON_R);
+                }
+
+                // ── Text content ───────────────────────────────────────────────────
+                let textY = iconCY + ICON_R + 5;
+
+                // Name lines
+                const textEl = el.append("text")
+                    .attr("class", `name-text ${couple ? "couple-name" : ""}`)
+                    .attr("x", 0)
+                    .attr("y", textY);
+
+                nameParts.forEach((part, i) => {
                     textEl.append("tspan")
                         .attr("x", 0)
-                        .attr("dy", index === 0 ? "0" : "1.2em")
+                        .attr("dy", i === 0 ? "0" : `${LINE_H}px`)
                         .text(part);
                 });
+                textY += (nameParts.length - 1) * LINE_H + LINE_H;
 
-                let extraLines = 0;
-                if (d.data.attributes && d.data.attributes.Location) {
-                    const locY = 18 + (parts.length * 13);
+                // Location
+                if (d.data.attributes?.Location) {
                     el.append("text")
-                        .attr("class", "location-text")
-                        .attr("x", 0)
-                        .attr("y", locY)
+                        .attr("class", "meta-text")
+                        .attr("x", 0).attr("y", textY)
+                        .attr("fill", "#38bdf8")
                         .text(`📍 ${d.data.attributes.Location}`);
-                    extraLines++;
+                    textY += LINE_H;
                 }
-                if (d.data.attributes && d.data.attributes.Dates) {
-                    const datesY = 18 + (parts.length * 13) + (extraLines * 13);
+                // Dates
+                if (d.data.attributes?.Dates) {
                     el.append("text")
-                        .attr("class", "location-text")
-                        .attr("x", 0)
-                        .attr("y", datesY)
-                        .style("fill", "#94a3b8")
+                        .attr("class", "meta-text")
+                        .attr("x", 0).attr("y", textY)
+                        .attr("fill", "#94a3b8")
                         .text(`🗓 ${d.data.attributes.Dates}`);
+                    textY += LINE_H;
+                }
+                // Note
+                if (d.data.attributes?.Note) {
+                    el.append("text")
+                        .attr("class", "meta-text")
+                        .attr("x", 0).attr("y", textY)
+                        .attr("fill", "#f59e0b")
+                        .text(`ℹ️ ${d.data.attributes.Note}`);
                 }
             });
 
-            const nodeUpdate = node.merge(nodeEnter);
-
-            nodeUpdate.attr("class", d => `node ${d.children || d._children ? 'has-children' : ''} ${d._children ? 'collapsed' : ''}`)
-                .transition().duration(400)
+            // Update existing nodes' class and position
+            nodeSel.merge(nodeEnter)
+                .attr("class", d => {
+                    const hasKids = d.children || d._children;
+                    return ["node", hasKids ? "has-children" : "", d._children ? "collapsed" : ""].join(" ").trim();
+                })
+                .transition().duration(350)
                 .attr("transform", d => `translate(${d.x + margin.left},${d.y + margin.top})`);
 
-            node.exit().remove();
+            nodeSel.exit().remove();
 
-            // Hover effect for path highlighting
+            // ── Hover: highlight ancestry path ─────────────────────────────────────
             g.selectAll(".node")
-                .on("mouseenter", function(event, d) {
-                    const ancestorSet = new Set(d.ancestors());
-                    g.selectAll(".link").classed("highlighted", l => ancestorSet.has(l.target) && ancestorSet.has(l.source));
+                .on("mouseenter", (event, d) => {
+                    const anc = new Set(d.ancestors());
+                    g.selectAll(".link").classed("highlighted", l => anc.has(l.target) && anc.has(l.source));
                 })
-                .on("mouseleave", function() {
-                    g.selectAll(".link").classed("highlighted", false);
-                });
+                .on("mouseleave", () => g.selectAll(".link").classed("highlighted", false));
         }
 
+        // ─── Fit to viewport ───────────────────────────────────────────────────────
         function fitToScreen() {
             if (!g || !svg) return;
             const bounds = g.node().getBBox();
+            if (!bounds.width || !bounds.height) return;
             const parent = svg.node().parentElement;
-            const fullWidth = parent.clientWidth;
-            const fullHeight = parent.clientHeight;
-            
-            if (bounds.width === 0 || bounds.height === 0) return;
-            
-            const padding = 30;
-            const widthScale = (fullWidth - padding * 2) / bounds.width;
-            const heightScale = (fullHeight - padding * 2) / bounds.height;
-            const scale = Math.min(widthScale, heightScale, 1.2);
-            
-            const midX = bounds.x + bounds.width / 2;
-            const midY = bounds.y + bounds.height / 2;
-            
-            const translateX = fullWidth / 2 - scale * midX;
-            const translateY = fullHeight / 2 - scale * midY;
-
-            svg.transition().duration(600).call(
-                zoom.transform,
-                d3.zoomIdentity.translate(translateX, translateY).scale(scale)
-            );
+            const fw = parent.clientWidth;
+            const fh = parent.clientHeight;
+            const pad = 30;
+            const scale = Math.min((fw - pad * 2) / bounds.width, (fh - pad * 2) / bounds.height, 1.2);
+            const tx = fw / 2 - scale * (bounds.x + bounds.width / 2);
+            const ty = fh / 2 - scale * (bounds.y + bounds.height / 2);
+            svg.transition().duration(600).call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
         }
 
-        function zoomIn() {
-            svg.transition().duration(300).call(zoom.scaleBy, 1.3);
-        }
-
-        function zoomOut() {
-            svg.transition().duration(300).call(zoom.scaleBy, 0.7);
-        }
+        function zoomIn()  { svg.transition().duration(300).call(zoom.scaleBy, 1.3); }
+        function zoomOut() { svg.transition().duration(300).call(zoom.scaleBy, 0.7); }
 
         function expandAll() {
             function expand(d) {
-                if (d._children) {
-                    d.children = d._children;
-                    d._children = null;
-                }
+                if (d._children) { d.children = d._children; d._children = null; }
                 if (d.children) d.children.forEach(expand);
             }
             expand(root);
@@ -452,18 +536,11 @@
         }
 
         function collapseAll() {
-            if (root.children) {
-                root.children.forEach(d => {
-                    function collapse(n) {
-                        if (n.children) {
-                            n._children = n.children;
-                            n._children.forEach(collapse);
-                            n.children = null;
-                        }
-                    }
-                    collapse(d);
-                });
+            function collapse(n) {
+                if (n.children) { n._children = n.children; n.children = null; }
+                if (n._children) n._children.forEach(collapse);
             }
+            if (root.children) root.children.forEach(collapse);
             update(root);
             setTimeout(fitToScreen, 450);
         }
