@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Markov Family Tree</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #fcfcfc;
+        }
+        h2 {
+            text-align: center;
+        }
+        #tree-container {
+            display: block;
+            margin: 0 auto;
+        }
+        .node circle { 
+            fill: #fff; 
+            stroke: #4682b4; 
+            stroke-width: 3px; 
+            cursor: pointer; 
+        }
+        .node text { 
+            font: 12px sans-serif; 
+        }
+        .link { 
+            fill: none; 
+            stroke: #ccc; 
+            stroke-width: 2px; 
+        }
+    </style>
+</head>
+<body>
+    <h2>Markov Family Tree</h2>
+    
+    <!-- Massively increased height to 2500 to accommodate all branches -->
+    <svg id="tree-container" width="1400" height="2500"></svg>
+
+    <script>
+        d3.json("gentree-gridnev.json").then(function(treeData) {
+            
+            const width = 1400;
+            const height = 2500; // Increased to match SVG height
+            const margin = {top: 20, right: 250, bottom: 30, left: 300}; 
+
+            const svg = d3.select("#tree-container")
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const tree = d3.tree().size([height - margin.top - margin.bottom, width - margin.left - margin.right]);
+            const root = d3.hierarchy(treeData);
+            tree(root);
+
+            // Add links (the lines connecting nodes)
+            svg.selectAll(".link")
+                .data(root.links())
+                .enter().append("path")
+                .attr("class", "link")
+                .attr("d", d3.linkHorizontal()
+                    .x(d => d.y)
+                    .y(d => d.x));
+
+            // Add nodes (the circles for each person)
+            const node = svg.selectAll(".node")
+                .data(root.descendants())
+                .enter().append("g")
+                .attr("class", "node")
+                .attr("transform", d => `translate(${d.y},${d.x})`);
+
+            node.append("circle").attr("r", 10);
+
+            // Add names
+            node.append("text")
+                .attr("dy", ".35em")
+                .attr("x", d => d.children ? -15 : 15)
+                .style("text-anchor", d => d.children ? "end" : "start")
+                .text(d => d.data.name);
+                
+            // Add locations below names if they exist in the JSON attributes
+            node.append("text")
+                .attr("dy", "1.75em")
+                .attr("x", d => d.children ? -15 : 15)
+                .style("text-anchor", d => d.children ? "end" : "start")
+                .style("fill", "#666")
+                .style("font-size", "10px")
+                .text(d => d.data.attributes ? d.data.attributes.Location : "");
+                
+        }).catch(function(error) {
+            console.error("Error loading the JSON file:", error);
+        });
+    </script>
+</body>
+</html>
