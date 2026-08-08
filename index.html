@@ -2,93 +2,223 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markov Family Tree</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body { 
-            font-family: sans-serif; 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
             margin: 0; 
             padding: 20px; 
-            background-color: #fcfcfc;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
-        h2 {
+        
+        .header {
             text-align: center;
+            margin-bottom: 16px;
         }
+        .header h1 {
+            margin: 0 0 6px 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .stat-badge {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 14px;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        .tree-viewport {
+            flex: 1;
+            width: 100%;
+            overflow: auto;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
         #tree-container {
             display: block;
-            margin: 0 auto;
         }
+
+        /* Node Styling */
         .node circle { 
-            fill: #fff; 
-            stroke: #4682b4; 
-            stroke-width: 3px; 
+            fill: #3b82f6; 
+            stroke: #60a5fa; 
+            stroke-width: 2.5px; 
             cursor: pointer; 
+            transition: all 0.2s ease;
         }
-        .node text { 
-            font: 12px sans-serif; 
+        .node:hover circle {
+            fill: #a855f7;
+            stroke: #c084fc;
+            r: 9px;
+            filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.7));
         }
+
+        .node text.name-text { 
+            font-family: 'Inter', sans-serif;
+            font-size: 11px; 
+            font-weight: 500;
+            fill: #f1f5f9;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .node text.location-text { 
+            font-family: 'Inter', sans-serif;
+            font-size: 9.5px; 
+            font-weight: 400;
+            fill: #38bdf8;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        /* Link Line Styling */
         .link { 
             fill: none; 
-            stroke: #ccc; 
+            stroke: #475569; 
             stroke-width: 2px; 
+            stroke-linecap: round;
+            transition: stroke 0.25s ease, stroke-width 0.25s ease;
+        }
+        .link.highlighted {
+            stroke: #a855f7;
+            stroke-width: 3px;
         }
     </style>
 </head>
 <body>
-    <h2>Markov Family Tree</h2>
+    <div class="header">
+        <h1>Markov Family Tree</h1>
+        <p>Top-to-Bottom Genealogical Diagram (Scroll horizontally and vertically to explore)</p>
+        <div class="stats-bar">
+            <span class="stat-badge" id="stat-members">Loading...</span>
+            <span class="stat-badge" id="stat-generations">Loading...</span>
+        </div>
+    </div>
     
-    <!-- Massively increased height to 2500 to accommodate all branches -->
-    <svg id="tree-container" width="1400" height="2500"></svg>
+    <div class="tree-viewport">
+        <svg id="tree-container"></svg>
+    </div>
 
     <script>
         d3.json("gentree-gridnev.json").then(function(treeData) {
+            const root = d3.hierarchy(treeData);
             
-            const width = 1400;
-            const height = 2500; // Increased to match SVG height
-            const margin = {top: 20, right: 250, bottom: 30, left: 300}; 
+            // Calculate stats
+            const leaves = root.leaves();
+            const descendants = root.descendants();
+            
+            document.getElementById("stat-members").textContent = `${descendants.length} Family Members`;
+            document.getElementById("stat-generations").textContent = `${root.height + 1} Generations`;
+
+            // Dynamic dimensions for Top-to-Bottom tree
+            const leafCount = leaves.length;
+            const margin = {top: 50, right: 60, bottom: 100, left: 60}; 
+            const width = Math.max(1600, leafCount * 120);
+            const height = Math.max(900, (root.height + 1) * 220);
 
             const svg = d3.select("#tree-container")
-                .append("g")
+                .attr("width", width)
+                .attr("height", height);
+
+            const g = svg.append("g")
                 .attr("transform", `translate(${margin.left},${margin.top})`);
 
-            const tree = d3.tree().size([height - margin.top - margin.bottom, width - margin.left - margin.right]);
-            const root = d3.hierarchy(treeData);
-            tree(root);
+            const treeLayout = d3.tree()
+                .size([width - margin.left - margin.right, height - margin.top - margin.bottom])
+                .separation((a, b) => (a.parent === b.parent ? 1 : 1.25));
 
-            // Add links (the lines connecting nodes)
-            svg.selectAll(".link")
+            treeLayout(root);
+
+            // Links (Top to Bottom: d3.linkVertical())
+            const link = g.selectAll(".link")
                 .data(root.links())
                 .enter().append("path")
                 .attr("class", "link")
-                .attr("d", d3.linkHorizontal()
-                    .x(d => d.y)
-                    .y(d => d.x));
+                .attr("d", d3.linkVertical()
+                    .x(d => d.x)
+                    .y(d => d.y));
 
-            // Add nodes (the circles for each person)
-            const node = svg.selectAll(".node")
-                .data(root.descendants())
+            // Nodes (Top to Bottom: translate(d.x, d.y))
+            const node = g.selectAll(".node")
+                .data(descendants)
                 .enter().append("g")
                 .attr("class", "node")
-                .attr("transform", d => `translate(${d.y},${d.x})`);
+                .attr("transform", d => `translate(${d.x},${d.y})`);
 
-            node.append("circle").attr("r", 10);
+            node.append("circle")
+                .attr("r", 6.5);
 
-            // Add names
-            node.append("text")
-                .attr("dy", ".35em")
-                .attr("x", d => d.children ? -15 : 15)
-                .style("text-anchor", d => d.children ? "end" : "start")
-                .text(d => d.data.name);
-                
-            // Add locations below names if they exist in the JSON attributes
-            node.append("text")
-                .attr("dy", "1.75em")
-                .attr("x", d => d.children ? -15 : 15)
-                .style("text-anchor", d => d.children ? "end" : "start")
-                .style("fill", "#666")
-                .style("font-size", "10px")
-                .text(d => d.data.attributes ? d.data.attributes.Location : "");
-                
+            // Render name text with line wrapping for '&'
+            node.each(function(d) {
+                const el = d3.select(this);
+                const name = d.data.name || "";
+                const parts = name.includes("&") 
+                    ? name.split("&").map((p, i) => i === 1 ? "& " + p.trim() : p.trim())
+                    : [name];
+
+                const textEl = el.append("text")
+                    .attr("class", "name-text")
+                    .attr("y", 18);
+
+                parts.forEach((part, index) => {
+                    textEl.append("tspan")
+                        .attr("x", 0)
+                        .attr("dy", index === 0 ? "0" : "1.2em")
+                        .text(part);
+                });
+
+                if (d.data.attributes && d.data.attributes.Location) {
+                    const locY = 18 + (parts.length * 13);
+                    el.append("text")
+                        .attr("class", "location-text")
+                        .attr("x", 0)
+                        .attr("y", locY)
+                        .text(`📍 ${d.data.attributes.Location}`);
+                }
+            });
+
+            // Lineage path highlighting on hover
+            node.on("mouseenter", function(event, d) {
+                const ancestorNodes = new Set(d.ancestors());
+                link.classed("highlighted", l => ancestorNodes.has(l.target) && ancestorNodes.has(l.source));
+            }).on("mouseleave", function() {
+                link.classed("highlighted", false);
+            });
+
         }).catch(function(error) {
             console.error("Error loading the JSON file:", error);
         });
