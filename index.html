@@ -15,8 +15,8 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             margin: 0;
             padding: 16px;
-            background: #0f172a;
-            color: #f8fafc;
+            background: #111118;
+            color: #f0f0f0;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -36,13 +36,13 @@
             margin: 0;
             font-size: 1.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            background: linear-gradient(135deg, #e879f9 0%, #f59e0b 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .header-title p {
             margin: 2px 0 0 0;
-            color: #94a3b8;
+            color: #9ca3af;
             font-size: 0.8rem;
         }
         .header-right {
@@ -53,19 +53,19 @@
         }
         .stats-bar { display: flex; gap: 8px; }
         .stat-badge {
-            background: rgba(30,41,59,0.8);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.12);
             padding: 4px 12px;
             border-radius: 9999px;
             font-size: 0.78rem;
-            color: #cbd5e1;
+            color: #e5e7eb;
             font-weight: 500;
         }
         .controls-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
         .btn {
-            background: #1e293b;
-            border: 1px solid #334155;
-            color: #f1f5f9;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.14);
+            color: #e5e7eb;
             padding: 6px 12px;
             border-radius: 8px;
             font-size: 0.8rem;
@@ -77,9 +77,9 @@
             transition: all 0.2s ease;
             user-select: none;
         }
-        .btn:hover { background: #334155; border-color: #475569; color: #38bdf8; }
-        .btn-primary { background: #2563eb; border-color: #3b82f6; color: #fff; }
-        .btn-primary:hover { background: #1d4ed8; border-color: #60a5fa; color: #fff; }
+        .btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); color: #ffffff; }
+        .btn-primary { background: #7c3aed; border-color: #8b5cf6; color: #fff; }
+        .btn-primary:hover { background: #6d28d9; border-color: #a78bfa; color: #fff; }
 
         /* Legend */
         .legend {
@@ -92,7 +92,7 @@
             align-items: center;
             gap: 5px;
             font-size: 0.75rem;
-            color: #94a3b8;
+            color: #d1d5db;
         }
         .legend-dot {
             width: 14px;
@@ -102,13 +102,13 @@
             flex-shrink: 0;
         }
         .legend-dot.couple {
-            background: #1e3a5f;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px #0f172a, 0 0 0 5px #3b82f6;
+            background: #3b0764;
+            border-color: #a855f7;
+            box-shadow: 0 0 0 3px #111118, 0 0 0 5px #a855f7;
         }
         .legend-dot.single {
-            background: #0e4429;
-            border-color: #22c55e;
+            background: #064e3b;
+            border-color: #10b981;
         }
         .legend-dot.collapsed {
             background: #78350f;
@@ -118,10 +118,10 @@
         .tree-viewport {
             flex: 1;
             width: 100%;
-            background: #1e293b;
-            border: 1px solid #334155;
+            background: #16161e;
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 12px;
-            box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.2);
+            box-shadow: inset 0 2px 8px 0 rgba(0,0,0,0.4);
             position: relative;
             overflow: hidden;
             cursor: grab;
@@ -131,58 +131,59 @@
         #tree-container { width: 100%; height: 100%; display: block; }
 
         /* === Node card background === */
+        /* Single: very dark charcoal with green left border tint */
         .node-card {
-            fill: rgba(15, 23, 42, 0.82);
-            stroke: none;
-            rx: 6px;
-            ry: 6px;
+            fill: #1c1c26;
         }
+        /* Couple: dark charcoal with very subtle purple tint */
         .node-card.couple-card {
-            fill: rgba(30, 58, 95, 0.82);
+            fill: #1e1828;
         }
 
-        /* === Couple node: double-ring indicator === */
+        /* === Couple node: double-ring indicator (violet) === */
         .node-icon-outer {
             fill: none;
             stroke-width: 2px;
-            stroke: #3b82f6;
+            stroke: #a855f7;
         }
         .node-icon-inner {
-            fill: #3b82f6;
-            stroke: #93c5fd;
+            fill: #7c3aed;
+            stroke: #c084fc;
             stroke-width: 1.5px;
         }
 
-        /* Single person node */
+        /* Single person node (emerald green) */
         .node-icon-single {
-            fill: #22c55e;
-            stroke: #4ade80;
+            fill: #059669;
+            stroke: #34d399;
             stroke-width: 2px;
         }
 
-        /* Collapsed indicator */
+        /* Collapsed: amber */
         .node.collapsed .node-icon-outer,
         .node.collapsed .node-icon-inner,
         .node.collapsed .node-icon-single {
-            fill: #f59e0b;
-            stroke: #fde047;
+            fill: #d97706;
+            stroke: #fbbf24;
         }
 
-        /* Hover pulse on node group */
+        /* Hover: bright violet glow */
         .node { cursor: pointer; }
-        .node:hover .node-icon-outer { stroke: #c084fc; filter: drop-shadow(0 0 6px rgba(168,85,247,0.8)); }
-        .node:hover .node-icon-inner { fill: #a855f7; stroke: #c084fc; }
-        .node:hover .node-icon-single { fill: #a855f7; stroke: #c084fc; }
+        .node:hover .node-icon-outer { stroke: #f0abfc; filter: drop-shadow(0 0 7px rgba(240,171,252,0.7)); }
+        .node:hover .node-icon-inner { fill: #c026d3; stroke: #f0abfc; }
+        .node:hover .node-icon-single { fill: #c026d3; stroke: #f0abfc; }
 
+        /* Name text: always bright white — max contrast */
         .node text.name-text {
             font-family: 'Inter', sans-serif;
             font-size: 11px;
-            font-weight: 500;
-            fill: #f1f5f9;
+            font-weight: 600;
+            fill: #ffffff;
             text-anchor: middle;
             pointer-events: none;
         }
-        .node text.name-text.couple-name { fill: #93c5fd; }
+        /* Couple names: very light lavender so they still stand out slightly */
+        .node text.name-text.couple-name { fill: #f5f0ff; }
 
         .node text.meta-text {
             font-family: 'Inter', sans-serif;
@@ -195,12 +196,12 @@
         /* Links */
         .link {
             fill: none;
-            stroke: #334155;
+            stroke: rgba(255,255,255,0.15);
             stroke-width: 1.5px;
             stroke-linecap: round;
             transition: stroke 0.2s ease, stroke-width 0.2s ease;
         }
-        .link.highlighted { stroke: #a855f7; stroke-width: 2.5px; }
+        .link.highlighted { stroke: #e879f9; stroke-width: 2.5px; }
 
         .hint-toast {
             position: absolute;
@@ -570,7 +571,7 @@
                     .attr("height", ch)
                     .attr("rx", 7)
                     .attr("ry", 7)
-                    .attr("stroke", couple ? "#3b82f6" : "#22c55e")
+                    .attr("stroke", couple ? "#a855f7" : "#10b981")
                     .attr("stroke-width", 1);
 
                 // ── Node icon (couple = double-ring; single = filled circle) ───────
@@ -616,7 +617,7 @@
                     el.append("text")
                         .attr("class", "meta-text")
                         .attr("x", 0).attr("y", textY)
-                        .attr("fill", "#38bdf8")
+                        .attr("fill", "#fbbf24")  // warm amber — high contrast on dark card
                         .text(`📍 ${d.data.attributes.Location}`);
                     textY += LINE_H;
                 }
@@ -625,7 +626,7 @@
                     el.append("text")
                         .attr("class", "meta-text")
                         .attr("x", 0).attr("y", textY)
-                        .attr("fill", "#94a3b8")
+                        .attr("fill", "#6ee7b7")  // soft mint — readable on dark
                         .text(`🗓 ${d.data.attributes.Dates}`);
                     textY += LINE_H;
                 }
@@ -634,7 +635,7 @@
                     el.append("text")
                         .attr("class", "meta-text")
                         .attr("x", 0).attr("y", textY)
-                        .attr("fill", "#f59e0b")
+                        .attr("fill", "#fb923c")  // orange — distinct from other meta
                         .text(`ℹ️ ${d.data.attributes.Note}`);
                 }
             });
